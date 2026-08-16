@@ -21,13 +21,23 @@ export const apiRequest = async (endpoint, options = {}) => {
     headers: buildHeaders(options.token || null),
   });
 
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  const isJsonResponse = contentType.includes('application/json');
+  const payload = isJsonResponse ? await response.json() : await response.text();
 
   if (!response.ok) {
-    throw new Error(data.message || 'Request failed.');
+    if (isJsonResponse) {
+      throw new Error(payload.message || 'Request failed.');
+    }
+
+    throw new Error('The server returned an unexpected response. Check that VITE_API_URL points to your backend.');
   }
 
-  return data;
+  if (!isJsonResponse) {
+    throw new Error('The server returned HTML instead of JSON. Check your deployed API URL configuration.');
+  }
+
+  return payload;
 };
 
 export const registerUser = async (payload) =>

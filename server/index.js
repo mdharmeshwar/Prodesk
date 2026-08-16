@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import protectedRoutes from './routes/protectedRoutes.js';
@@ -9,6 +11,9 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
@@ -24,6 +29,16 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api', protectedRoutes);
+
+if (process.env.SERVE_STATIC === 'true' || process.env.NODE_ENV === 'production') {
+  const staticDir = path.resolve(__dirname, '..', 'dist');
+  app.use(express.static(staticDir));
+
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) return res.status(404).end();
+    return res.sendFile(path.join(staticDir, 'index.html'));
+  });
+}
 
 const startServer = async () => {
   await connectDB();

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const PasswordField = ({ label, id, name, value, onChange, onBlur, placeholder, autoComplete, error, disabled }) => {
+const PasswordField = ({ label, id, name, value, onChange, placeholder, autoComplete, error, disabled }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -13,7 +13,6 @@ const PasswordField = ({ label, id, name, value, onChange, onBlur, placeholder, 
           type={showPassword ? 'text' : 'password'}
           value={value}
           onChange={onChange}
-          onBlur={onBlur}
           placeholder={placeholder}
           autoComplete={autoComplete}
           disabled={disabled}

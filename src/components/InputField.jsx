@@ -5,7 +5,6 @@ const InputField = ({
   type = 'text',
   value,
   onChange,
-  onBlur,
   placeholder,
   autoComplete,
   error,
@@ -20,7 +19,6 @@ const InputField = ({
       type={type}
       value={value}
       onChange={onChange}
-      onBlur={onBlur}
       placeholder={placeholder}
       autoComplete={autoComplete}
       disabled={disabled}

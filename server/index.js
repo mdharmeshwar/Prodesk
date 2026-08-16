@@ -26,13 +26,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api', protectedRoutes);
 
 const startServer = async () => {
-  const databaseReady = await connectDB();
+  await connectDB();
 
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-    if (!databaseReady) {
-      console.warn('Application started without MongoDB. Auth routes will still run in memory-free development mode only if the DB is absent.');
-    }
   });
 };
 

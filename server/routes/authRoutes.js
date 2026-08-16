@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -140,18 +141,9 @@ router.post(
   }
 );
 
-router.get('/me', async (req, res) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Authentication required.' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
+router.get('/me', authMiddleware, async (req, res) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'development-secret');
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await User.findById(req.user.userId).select('-password');
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
@@ -168,12 +160,8 @@ router.get('/me', async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
+    return res.status(500).json({ success: false, message: 'Unable to fetch user.' });
   }
-});
-
-router.get('/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'Auth service healthy.' });
 });
 
 export default router;

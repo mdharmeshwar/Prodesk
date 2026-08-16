@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
@@ -31,13 +32,25 @@ app.use('/api/auth', authRoutes);
 app.use('/api', protectedRoutes);
 
 if (process.env.SERVE_STATIC === 'true' || process.env.NODE_ENV === 'production') {
-  const staticDir = path.resolve(__dirname, '..', 'dist');
-  app.use(express.static(staticDir));
+  const candidates = [
+    path.resolve(__dirname, '..', 'dist'),
+    path.resolve(__dirname, 'dist'),
+    path.resolve(process.cwd(), 'dist'),
+    path.resolve(process.cwd(), 'src', 'dist'),
+  ];
 
-  app.get('*', (req, res) => {
-    if (req.path.startsWith('/api')) return res.status(404).end();
-    return res.sendFile(path.join(staticDir, 'index.html'));
-  });
+  const staticDir = candidates.find((p) => fs.existsSync(path.join(p, 'index.html')));
+
+  if (staticDir) {
+    app.use(express.static(staticDir));
+
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api')) return res.status(404).end();
+      return res.sendFile(path.join(staticDir, 'index.html'));
+    });
+  } else {
+    console.info('Static build not found; skipping static file serving. Expected one of:', candidates.join(', '));
+  }
 }
 
 const startServer = async () => {
